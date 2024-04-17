@@ -1,42 +1,43 @@
-#include "widget.h"
-
 #include <QApplication>
-#include <QMap>
-#include <QString>
-#include <QDebug>
+#include <QMainWindow>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QDebug>
+#include <QMap>
+#include <algorithm>
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    QApplication app(argc, argv);
     QWidget w;
 
+    // Define and populate the QMap with some unsorted data
     QMap<QString, int> data;
-
     data.insert("ACT WiFi", 25);
-    data.insert("Airtel WiFi", 30);
+    data.insert("Airtel WiFi", 70);
     data.insert("Hathway WiFi", 35);
     data.insert("Lacal WiFi", 50);
     data.insert("Jio WiFi", 80);
 
-    QMap<int, QString> sortedData;
-    for (auto it = data.constBegin(); it != data.constEnd(); ++it) {
-        sortedData.insert(it.value(), it.key());
-    }
+    // Sort the QMap by its values in descending order
+    QList<QString> keys = data.keys();
+    std::sort(keys.begin(), keys.end(), [&data](const QString &key1, const QString &key2) {
+        return data.value(key1) > data.value(key2); // Note the '>' for descending order
+    });
 
     QVBoxLayout mainLayout(&w);
 
-    qDebug() << "All data:";
-
-    for (auto it = sortedData.constBegin(); it != sortedData.constEnd(); ++it) {
-        QPushButton *button = new QPushButton(it.value() + ": " + QString::number(it.key()), &w);
+    // Create QPushButton widgets to display the sorted data
+    for (const auto &key : keys) {
+        QPushButton *button = new QPushButton(QString::number(data.value(key)) + " : " + key);
         mainLayout.addWidget(button);
+        QObject::connect(button, &QPushButton::clicked, [key]() {
+            qDebug() << "Button" << key << "clicked!";
+        });
     }
 
     w.setLayout(&mainLayout);
-
     w.show();
 
-    return a.exec();
+    return app.exec();
 }
